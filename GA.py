@@ -18,6 +18,20 @@ from pgmpy.estimators import BayesianEstimator
 import time
 from copy import deepcopy
 
+
+#def penalidade(G1,nodes):
+#    maior_infuencia=0
+#    for i in G1.nodes():
+#        aux_nodes = G1.active_trail_nodes(i)
+#        size_nodes=int(len(aux_nodes[i]))
+#    if maior_infuencia<size_nodes:
+#        maior_infuencia=size_nodes
+#        
+#    return (len(nodes)-maior_infuencia)*0
+
+
+
+
 def cruzamento_binario(x,y,n):
     m=[round(random.random()) for i in range(n)]
     filho1=[]
@@ -33,6 +47,7 @@ def cruzamento_binario(x,y,n):
 
 def mutacao(x,fitness_aux,prob,max_v,min_v):
     if len(x)*len(x[0])*prob<1:
+        print("entando")
         for i in range(len(x)):
             for j in range(len(x[i])):
                 r=random.random()
@@ -65,7 +80,7 @@ def mutacao(x,fitness_aux,prob,max_v,min_v):
         
 def vetor_Rede(solucao,nodes):
     G_aux = BayesianModel()
-    G_aux.add_nodes_from(nodes)
+    #G_aux.add_nodes_from(nodes)
     k=0
     aux=1
     for i in range(1,len(nodes)):
@@ -82,7 +97,11 @@ def vetor_Rede(solucao,nodes):
                     G_aux.add_edge(nodes[j], nodes[i])
             k=k+1
         aux=aux+1
+    for i in nodes:
+        if i not in G_aux.nodes():
+            return False
     return G_aux
+
 
 
 def torneio(fitness,ind):
@@ -114,17 +133,17 @@ def Elitismo(fitness,ind,pop_size):
     
 
 #Ler data
-with open('ASIA10k.csv') as csv_file:
+with open('cancer100k.csv') as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')
     aux = 0
     data =[]
-    data1=[ [] for i in range(8)]
+    data1=[ [] for i in range(5)]
     for row in csv_reader:
         data.append(row)
         for i in range(len(row)):
             data1[i].append(row[i])
         aux=aux+1
-        if aux == 1001:
+        if aux == 50001:
             break
     data = {}
 for i in range(len(data1)):
@@ -138,12 +157,17 @@ ind=[]
 fitness=[]
 min_valor=0
 max_valor=2
-pop_size=20
-p_mutacao=0.01
-p_cruzamento=0.8
-nodes=['asia', 'tub', 'smoke', 'lung', 'bronc', 'either', 'xray', 'dysp']
+pop_size=50
+p_mutacao=0.05
+p_cruzamento=0.9
+#nodes=['asia', 'tub', 'smoke', 'lung', 'bronc', 'either', 'xray', 'dysp']
+#nodes=['A','S',	'T','L'	,'B',	'E',	'X',	'D']
+nodes=['Pollution','Smoker','Cancer','Xray','Dyspnoea']
 nao_dag=[]
 ind_size=round((len(nodes)*len(nodes)-len(nodes))/2)
+gen_max=50
+gen=0
+melhor_fit=[]
 #populacao inicial
 while len(ind)<pop_size:
     aux=[random.randint(min_valor, max_valor) for i in range(ind_size)]
@@ -154,8 +178,6 @@ while len(ind)<pop_size:
             fitness.append(abs(BicScore(data).score(G)))
         else:
             nao_dag.append(aux)
-gen_max=500
-gen=0
 while gen<gen_max:
     print(gen)
     filhos=[]
@@ -199,6 +221,7 @@ while gen<gen_max:
 
   
     [ind,fitness]=Elitismo(deepcopy(fitness),deepcopy(ind_aux),pop_size)
+    melhor_fit.append(fitness[0])
     gen=gen+1
 
 G=vetor_Rede(ind[0],nodes)
