@@ -102,7 +102,47 @@ def vetor_Rede(solucao,nodes):
             return False
     return G_aux
 
+def pertubacao(y,fitness_aux,prob,max_v,min_v,bic_score,nodes,nao_dag):
+    for val in range(len(y)):
+        r=random.random()
+        if r<=prob:
+            if y[val] == 0:
+                valor_mut_antigo=0
+                maximo=3
+                valor_mut=random.randint(1, 2)
+                valor_mut2=maximo-valor_mut
+                y[val]=valor_mut
+                if y not in nao_dag:
+                    G=vetor_Rede(y,nodes)
+                    if G:
+                        fitness_aux=abs(bic_score.score(G))
+                    else:
+                        nao_dag.append(y)  
+                y[val]=valor_mut2
+                if y not in nao_dag:
+                    G=vetor_Rede(y,nodes)
+                    if G:
+                        fitness_aux=abs(bic_score.score(G))
+                    else:
+                        nao_dag.append(y)
+                        y[val]=valor_mut_antigo
+                else:
+                    y[val]=valor_mut_antigo
+            else:
+                valor_mut_antigo=y[val]
+                y[val]=0
+                if y not in nao_dag:
+                    G=vetor_Rede(y,nodes)
+                    if G:
+                        fitness_aux=abs(bic_score.score(G))
+                    else:
+                        nao_dag.append(y)
+                        y[val]=valor_mut_antigo
+                else:
+                    y[val]=valor_mut_antigo
+                
 
+    return y,fitness_aux
 
 def torneio(fitness,ind):
     k=0.75
@@ -164,6 +204,7 @@ p_cruzamento=0.9
 #nodes=['A','S',	'T','L'	,'B',	'E',	'X',	'D']
 nodes=['Pollution','Smoker','Cancer','Xray','Dyspnoea']
 nao_dag=[]
+bic_score=BicScore(data)
 ind_size=round((len(nodes)*len(nodes)-len(nodes))/2)
 gen_max=50
 gen=0
@@ -175,7 +216,7 @@ while len(ind)<pop_size:
         G=vetor_Rede(aux,nodes)
         if G:
             ind.append(aux)
-            fitness.append(abs(BicScore(data).score(G)))
+            fitness.append(abs(bic_score.score(G)))
         else:
             nao_dag.append(aux)
 while gen<gen_max:
@@ -192,7 +233,7 @@ while gen<gen_max:
                 G=vetor_Rede(filho1,nodes)
                 if G:
                     filhos.append(filho1)
-                    filhos_fitness.append(abs(BicScore(data).score(G)))
+                    filhos_fitness.append(abs(bic_score.score(G)))
                 else:
                     nao_dag.append(filho1)
             if len(filhos)<pop_size:
@@ -201,7 +242,7 @@ while gen<gen_max:
                     if G:
 
                         filhos.append(filho2)
-                        filhos_fitness.append(abs(BicScore(data).score(G)))
+                        filhos_fitness.append(abs(bic_score.score(G)))
 
                     else:
 
@@ -210,14 +251,14 @@ while gen<gen_max:
             filhos.append(ind_sel1)
             filhos_fitness.append(fitness_sel1)
 
-    
-    
+#    for i in range(len(filhos)):
+#        [filhos[i],fitness_aux]=pertubacao(filhos[i],filhos_fitness,p_mutacao,max_valor,min_valor,bic_score,nodes,nao_dag)
     mutacao(filhos,filhos_fitness,p_mutacao,max_valor, min_valor)
     fitness.clear()
     ind_aux=ind+filhos
     for i in ind_aux:
         G=vetor_Rede(i,nodes)
-        fitness.append(abs(BicScore(data).score(G)))
+        fitness.append(abs(bic_score.score(G)))
 
   
     [ind,fitness]=Elitismo(deepcopy(fitness),deepcopy(ind_aux),pop_size)
