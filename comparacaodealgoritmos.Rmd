@@ -1,0 +1,396 @@
+
+```{r setup,results='hide',warning=FALSE,message=FALSE, echo=FALSE}
+
+if (!require(ggplot2, quietly = TRUE)){
+      install.packages("ggplot2")
+}
+library(ggplot2)
+
+if (!require(tinytex, quietly = TRUE)){
+      install.packages("tinytex")
+}
+library(tinytex)
+
+if (!require(broom, quietly = TRUE)){
+       devtools::install_github("dgrtwo/broom")
+ }
+library(broom)
+
+if (!require(GGally, quietly = TRUE)){
+      install.packages("GGally")
+}
+library(GGally)
+
+if (!require(devtools, quietly = TRUE)){
+      install.packages("devtools")                   
+      }
+library(devtools)
+
+if (!require(rmarkdown, quietly = TRUE)){
+      install_github("rstudio/rmarkdown")           
+      }
+library(rmarkdown)
+
+if (!require(EnvStats, quietly = TRUE)){
+      install.packages("EnvStats") 
+      }
+library(EnvStats)
+
+if (!require(TeachingDemos, quietly = TRUE)){
+      install.packages("TeachingDemos") 
+      }
+library(TeachingDemos)
+
+if (!require(simpleboot, quietly = TRUE)){
+      install.packages("simpleboot") 
+      }
+library(simpleboot)
+
+if (!require(tolerance, quietly = TRUE)){
+      install.packages("tolerance") 
+      }
+library(tolerance)
+
+if (!require(RCurl, quietly = TRUE)){
+      install.packages("RCurl") 
+      }
+library(RCurl)
+
+if (!require(lattice, quietly = TRUE)){
+      install.packages("lattice") 
+      }
+library(lattice)
+
+if (!require(dplyr, quietly = TRUE)){
+      install.packages("dplyr") 
+      }
+library(dplyr) 
+
+if (!require(multcomp, quietly = TRUE)){
+      install.packages("multcomp") 
+      }
+library(multcomp)
+
+```
+
+## Resumo
+O presente estudo de caso objetivou-se comparar o IMC médio de duas populações de estudantes, a saber: alunos de pós-graduação em Engenharia Elétrica na UFMG nos semestres de 2016-2 e 2017-2. Para isto foi feito uso de métodos de inferência estatística para as duas amostras. A fim de realizar análises estatísticas, dividiu-se a amostra em duas subpopulações, sendo uma feminina e outra masculina, considerando que o IMC feminino difere em alguns aspectos do masculino. O teste de hipóteses para a subpopulação masculina foi definido através da diferença das médias populacionais do IMC nos dois anos abordados. Para a validação das premissas em relação a diferença das médias foi utilizado o *Teste de Wilcoxon*. Para a variância, utilizou-se o *var.teste*.  Para a subpopulação feminina, optou-se pela utilização de um método não-paramétrico, o teste de *Wilcoxon-Mann-Whitney*. Essa escolha foi adotada levando em consideração a normalidade dos dados. Os resultados obtidos indicaram que não houve uma evidência forte para rejeitar a hipótese de que as populações nos anos de 2016 e 2017 seriam iguais. Assim, não foi possível inferir que as populações de estudantes do programa de pós-graduação em Engenharia Elétrica adotaram estilos de vida diferentes nos anos de 2016 e 2017.
+
+## Design do Experimento
+
+O presente estudo de caso objetiva comparar o IMC médio de duas populações de estudantes, a saber: alunos de pós-graduação em Engenharia Elétrica na UFMG nos semestres de 2016-2 e 2017-2.  Usualmente, testar uma hipótese é necessário quando se pretende elucidar se duas amostras são realmente diferentes ou se pertencem à mesma população. 
+O IMC é utilizado como um valor *proxy*, um *proxy* ou variável de *proxy* é uma variável que não é diretamente relevante, mas que serve no lugar de uma variável não observável ou incomensurável. E é utilizado para variáveis relativas ao estilo de vida dos alunos. Neste caso, é razoável supor que a divisão da análise em duas subpopulações (masculina e feminina) seja interessante. 
+
+Os dados utilizados foram extraídos dos arquivo imc_20162.csv, disponível na pasta data files do repositório Github da disciplina [Design and Analysis of Experiments](https://github.com/fcampelo/Design-and-Analysis-of-Experiments/).
+
+## Descição da Coleta de Dados
+
+
+A primeira etapa consistiu em tratar e isolar os dados de interesse. Uma vez que cruzando informações relativas às subpopulações feminina e masculina verificamos que podem apresentar perfis diferentes, as amostras também foram subdivididas.
+
+```{r}
+# criar o dataframe com os dados
+data_PSO_cancer30 <- read.csv(file = 'C:/Users/Fernanda Macedo/Desktop/TF EXP/PSO_cancer30.csv', header = FALSE)
+colnames(data_PSO_cancer30) <- c('BIC')
+data_PSO_cancer30$Problema <- "Cancer"
+data_PSO_cancer30$Algoritmo <- 'PSO'
+data_PSO_asia30 <- read.csv(file = 'C:/Users/Fernanda Macedo/Desktop/TF EXP/PSO_asia30.csv', header = FALSE)
+colnames(data_PSO_asia30) <- c('BIC')
+data_PSO_asia30$Problema <- "Asia"
+data_PSO_asia30$Algoritmo <- 'PSO'
+
+data_GA_30_asia <- read.csv(file = 'C:/Users/Fernanda Macedo/Desktop/TF EXP/GA_30_asia.csv', header = FALSE)
+colnames(data_GA_30_asia) <- c('BIC')
+data_GA_30_asia$Problema <- "Asia"
+data_GA_30_asia$Algoritmo <- 'GA'
+data_GA_cancer30 <- read.csv(file = 'C:/Users/Fernanda Macedo/Desktop/TF EXP/GA_cancer30.csv', header = FALSE)
+colnames(data_GA_cancer30) <- c('BIC')
+data_GA_cancer30$Problema <- "Cancer"
+data_GA_cancer30$Algoritmo <- 'GA'
+
+data_SA_30_asia <- read.csv(file = 'C:/Users/Fernanda Macedo/Desktop/TF EXP/SA_30_asia.csv', header = FALSE)
+colnames(data_SA_30_asia) <- c('BIC')
+data_SA_30_asia$Problema <- "Asia"
+data_SA_30_asia$Algoritmo <- 'SA'
+data_SA_cancer30 <- read.csv(file = 'C:/Users/Fernanda Macedo/Desktop/TF EXP/SA_cancer30.csv', header = FALSE)
+colnames(data_SA_cancer30) <- c('BIC')
+data_SA_cancer30$Problema <- "Cancer"
+data_SA_cancer30$Algoritmo <- 'SA'
+
+
+# junta os data frames e calcula o IMC
+amostras <- merge(data_PSO_asia30, data_PSO_cancer30, all = TRUE)
+amostras <- merge(amostras, data_GA_30_asia, all = TRUE)
+amostras <- merge(amostras, data_GA_cancer30, all = TRUE)
+amostras <- merge(amostras, data_SA_30_asia, all = TRUE)
+amostras <- merge(amostras, data_SA_cancer30, all = TRUE)
+
+amostras$Algoritmo <- as.factor(amostras$Algoritmo)
+amostras$Problema <- as.factor(amostras$Problema)
+
+cancer <- subset.data.frame(amostras, amostras$Problema == "Cancer")
+asia <- subset.data.frame(amostras, amostras$Problema == "Asia")
+
+
+```
+
+
+
+## Análise Exploratória dos Dados
+
+Foi realizada uma análise exploratória dos dados. Essa análise teve como objetivo extrair informações relevantes a partir de cada amostra, de forma que possíveis assimetrias e *outliers* pudessem ser observados. Com isso, objetivou-se que as decisões tomadas fossem mais realistas e confiáveis.
+
++ **Dados de IMC correspondentes a alunos do PPGEE nos anos de 2016 e 2017**
+
+```{r}
+
+boxplot(data_PSO_cancer30$BIC, data_GA_cancer30$BIC, data_SA_cancer30$BIC,
+        main = "Boxplot das Amostras para o problema - Cancer",
+        names = c("PSO", "GA", "SA"),
+        ylab = "d BIC")
+
+boxplot(data_PSO_asia30$BIC, data_GA_30_asia$BIC, data_SA_30_asia$BIC,
+        main = "Boxplot das Amostras para o problema - Asia",
+        names = c("PSO", "GA", "SA"),
+        ylab = "d BIC")
+
+```
+Teste de normalidade dos dados
+```{r}
+# teste normalidade cancer
+shapiro.test(data_PSO_cancer30$BIC)
+#shapiro.test(data_GA_cancer30$BIC)
+shapiro.test(data_SA_cancer30$BIC)
+
+# teste normalidade asia
+shapiro.test(data_PSO_asia30$BIC)
+shapiro.test(data_GA_30_asia$BIC)
+shapiro.test(data_SA_30_asia$BIC)
+```
+
+Teste variancia dos dados
+```{r}
+# teste normalidade cancer
+varTest(data_PSO_cancer30$BIC)
+#varTest(data_GA_cancer30$BIC)
+varTest(data_SA_cancer30$BIC)
+
+# teste normalidade asia
+varTest(data_PSO_asia30$BIC)
+varTest(data_GA_30_asia$BIC)
+varTest(data_SA_30_asia$BIC)
+```
+
+
+```{r}
+sigma_cancer <- sd(cancer$BIC)
+sigma_asia <- sd(asia$BIC)
+
+# Cancer
+# alfa = 1% para 99% de intervalo de confian?a
+alfa <- 0.05
+
+sigma0 <- sigma_cancer
+# define o efeito m?nimo de interesse
+delta <- 1 # usar o padronizado 
+# pot?ncia do teste
+potencia <- 0.8
+
+# C?lculo de tamanho amostral
+N_cancer <- ceiling(power.t.test(n=NULL,power = potencia, delta = delta, sd = sigma0, 
+              sig.level = alfa, type = "one.sample", alternative = "one.sided")$n)
+# ============================================================================================================
+# define o efeito m?nimo de interesse
+delta <- 1
+# desvio padr?o conhecido da popula??o
+n1 = length(data_PSO_asia30)
+n2 = length(data_GA_30_asia)
+n3 = length(data_SA_30_asia)
+s1 <- sd(data_PSO_asia30$BIC)
+s2 <- sd(data_GA_30_asia$BIC)
+s3 <- sd(data_SA_30_asia$BIC)
+# variancia entre grupos
+sp <- sqrt(((n1-1)*s1^2+(n2-1)*s2^2+(n3-1)*s3^2)/(n1+n2+n3-3))
+sigma0 <- sp
+# C?lculo de tamanho amostral
+N_asia <- ceiling(power.t.test(n=NULL,power = potencia, delta = delta, sd = sigma0, 
+              sig.level = alfa, type = "one.sample", alternative = "one.sided")$n)
+
+```
+
+
+## Análise Estatística
+
+```{r}
+model <- aov(log(BIC+0.00000001) ~ Algoritmo, data=asia)
+summary.lm(model)$r.squared
+summary(model)
+
+hist(model$residuals)
+par(mfrow = c(2, 2))
+plot(model, pch = 20, las = 1)
+shapiro.test(model$residuals)
+```
+
+
+
+```{r}
+library(multcomp)
+
+duntest <- glht(model, linfct = mcp(Algoritmo = "Dunnett"))
+duntestCI <- confint(duntest)
+#par(mar = c(5, 8, 4, 2), las = 1)
+plot(duntestCI, xlab = "Mean difference (log scale)")
+```
+
+
+
+
+### População masculina
+
+#### média
+Após  se  ter  procedido  à  análise  e  apresentação  dos  dados,  que  foram  obtidos  através  da  aplicação  dos  instrumentos  estatísticos,  iremos  em  seguida  proceder  à  interpretação  e  apresentação  dos  resultados  dos  testes  aplicados  para  decidir  acerca  das  hipóteses formuladas.
+Para realizar inferências em relação ao IMC médio das duas populações de alunos da Pós Graduação em Engenharia Elétrica, foi definido um teste de hipóteses. O parâmetro de interesse analisado representa a diferença das médias das populações de alunos nos anos de 2016 e 2017 ($\mu_{2016}^{H}-\mu_{2017}^{H}$). 
+
+$$\left\{\begin{array}{l}
+H_0: (\mu_{2016}^{H} - \mu_{2017}^{H}) = 0 \\
+H_1: (\mu_{2016}^{H} - \mu_{2017}^{H}) \neq 0
+\end{array}\right.$$
+
+As hipóteses foram estabelecidas com o intuito de avaliar se o IMC médio de uma população permaneceu constante com o ano anterior, ou seja, se as subpopulações adotaram estilos de vida semelhantes. Foi realizado o teste t de duas amostras - para variações homogêneas - calculando a variação e média para cada uma de suas duas amostras. Sendo obtido um estimador combinado de variância ($s_P$). A fórmula utilizada em máquinas é a seguinte:
+$$\displaystyle S_P^2 = \frac{(n_1-1)S_1^2+(n_2-1)S_2^2}{n_1+n_2-2}$$
+O teste t de duas amostras (Snedecor e Cochran, 1989) é usado para determinar se duas médias populacionais são iguais. Uma aplicação comum é testar se um novo processo ou tratamento é superior a um processo ou tratamento atual.
+
+```{r}
+wilcox.test(homens_16$IMC, homens_17$IMC) 
+```
+ Com o teste observamos que a hipótese nula não pode ser rejeitada. Ou seja, a um nível de significância de 0,05, não há evidência forte o suficiente para assumir que as médias das subpopulações masculinas sejam diferentes.
+
+#### variancia
+  
+  Utilizou-se o teste de variância para verificar se houve mudanças na amostra de um ano para o outro, ou seja, se a mesma continuou com o mesmo estilo de vida ou se houve mudanças. Caso observasse uma diferença na vaiância conclui-se que houve mudança de comportamento na subpopulação. 
+
+$$\left\{\begin{array}{l}
+H_0: \sigma_{H, 2016}^{2} = \sigma_{H, 2017}^{2} \\
+H_1: \sigma_{H, 2016}^{2} \neq \sigma_{H, 2017}^{2} 
+\end{array}\right.$$
+
+
+Para isso, utilizou-se o *var.test*, onde é executado um teste F para comparar as variações de duas amostras de populações normais.
+```{r}
+var.test(homens_16$IMC, homens_17$IMC, alternative = "two.sided") 
+
+```
+O teste falhou em rejeitar a hipótese nula, pois obtiveram um *p-value* maior que 0.05. Ou seja, não há evidência forte de que as variâncias das subpopulações sejam diferentes.
+
+### População feminima
+
+#### média
+
+Para a realização da comparação para a população feminina, considerando que o número de observações em uma das amostras é muito pequeno (igual a 4) e a distribuição das médias da segunda amostra evidencia uma não normalidade, optou-se pela utilização de um método não-paramétrico, o teste de *Wilcoxon-Mann-Whitney*.
+
+$$\left\{\begin{array}{l}
+H_0: (\mu_{2016}^{M} - \mu_{2017}^{M}) = 0 \\
+H_1: (\mu_{2016}^{M} - \mu_{2017}^{M}) \neq 0
+\end{array}\right.$$
+
+```{r}
+wilcox.test(mulheres_16$IMC, mulheres_17$IMC, conf.level = 0.95) 
+```
+Através do $p-value = 0.07273$, calculado pelo teste Wilcoxon, concluimos que falhamos em rejeitar $H_0$, com nível de significância de $\alpha = 0.05$, dado que não houve evidências suficientes para rejeitá-la. 
+
+#### para variancia
+
+Também utilizou-se o teste de variância para verificar se houve mudanças na amostra de um ano para o outro para a subpopulação feminina.
+
+$$\left\{\begin{array}{l}
+H_0: \sigma_{M, 2016}^{2} = \sigma_{M, 2017}^{2} \\
+H_1: \sigma_{M, 2016}^{2} \neq \sigma_{, 2017}^{2} 
+\end{array}\right.$$
+
+```{r}
+var.test(mulheres_16$IMC, mulheres_17$IMC, alternative = "two.sided") 
+
+```
+
+O teste falhou em rejeitar a hipótese nula, pois obtiveram um *p-value* maior que 0.05, no caso de 0.5353. Ou seja, não há evidência forte de que as variâncias das subpopulações sejam diferentes.
+
+
+### Estimação do tamanho do efeito e do intervalo de confiança na grandeza de interesse
+
+Para definir o valor de efeito minimamente relevante ($\delta^*$) considerou-se que, para classificar um indivíduo quanto ao grau de excesso de peso, são analisados intervalos de valores de IMC. Conforme [1], tem-se a Tabela 1.
+
+\begin{table}[htb]
+\centering
+\caption{Índice de massa corpórea (IMC)}
+\begin{tabular}{|l|l|} \hline
+Peso (kg)/$altura^2/m^2$        & \textbf{Descrição} \\ \hline
+Valores menores que $18 kg/m^2$   & Consideradas pessoas de baixo peso \\ \hline
+Valores entre $18-24 kg/m^2$ (Mulheres)    &  Consideradas IMC de pessoas normais \\ \hline
+Valores entre $18-25 kg/m^2$ (Homens)    &  Consideradas IMC de pessoas normais \\ \hline
+Valores entre $25-30 kg/m^2$     & Consideradas pessoas com sobrepeso \\ \hline
+Valores entre $30-35 kg/m^2$     & Pessoas obesas \\ \hline
+Valores $35-40 kg/m^2$           & Pessoas com obesidade moderada \\ \hline
+Valores > $40 kg/m^2$ & Pessoas com obesidade grave \\ \hline
+Valores > $50 kg/m^2$ & Pessoas com obesidade gravíssima \\ \hline    
+\end{tabular}
+\end{table}
+
+Portanto, chegou-se à conclusão que um valor de efeito minimamente relevante ($\delta^*$) = 2,5 seria satisfatório.
+
+```{r}
+
+#Para as mulheres
+# calculo do desvio padrão das duas populações
+n1 = length(homens_16$IMC)
+n2 = length(homens_17$IMC)
+s1 <- sqrt(var(homens_16$IMC))
+s2 <- sqrt(var(homens_17$IMC))
+sp <- sqrt(((n1-1)*s1^2+(n2-1)*s2^2)/(n1+n2-2))
+
+pi1 <- power.t.test(delta = 2.5, sd = sp, n = n1+n2-2, sig.level = 0.05, type = "two.sample", alternative = "two.sided")$power
+cat('Potencia do teste = ', pi1, '\n')
+
+# calculo do erro tipo 2 (beta)
+beta1 = 1 - pi1
+cat('beta = ', beta1)
+
+```
+
+
+
+```{r}
+
+#Para as mulheres
+# calculo do desvio padrão das duas populações
+n1_m = length(mulheres_16$IMC)
+n2_m = length(mulheres_17$IMC)
+s1_m <- sqrt(var(mulheres_16$IMC))
+s2_m <- sqrt(var(mulheres_17$IMC))
+sp_m <- sqrt(((n1_m-1)*s1_m^2+(n2_m-1)*s2_m^2)/(n1_m+n2_m-2))
+
+pi1_m <- power.t.test(delta = 2.5, sd = sp_m, n = n1_m+n2_m-2, sig.level = 0.05, type = "two.sample", alternative = "two.sided")$power
+cat('Potencia do teste = ', pi1_m, '\n')
+
+# calculo do erro tipo 2 (beta)
+beta1_m = 1 - pi1_m
+cat('beta = ', beta1_m)
+
+```
+
+
+## Conclusões e Recomendações
+O presente trabalho teve como objetivo comparar e discutir o IMC médio de duas subpopulações de estudantes de um dado departamento, objetivou-se obter conclusões acerca do estilo de vida e continuidade dos mesmos. 
+Como os fundamentos e propriedades do sistema classificatório baseado no IMC leva em consideração o excesso de peso, e que o mesmo está associado ao seu estilo de vida, não como um fator isolado. O fato da prevalência do excesso de peso em uma população pode ser utilizado para fazer uma conclusão em relação aos hábitos adotados.
+Para a subpopulação masculina, os resultados obtidos através do *teste de Wilcoxon* não indicaram uma evidência forte para assumir que as médias das populações masculinas seriam diferentes, a um nível de significância de 0,05.
+Para a subpopolação feminina, os resultados obtidos através do teste de *Wilcoxon-Mann-Whitney* também não indicaram uma evidência forte para assumir que as populações nos anos de 2016 e 2017 seriam diferentes. Assim, não foi possível inferir que as populações de estudantes tenham adotado estilos de vida diferentes nesses dois últimos anos. 
+
+## Referências
+
+[1] CAMPELO, F. *Design and Analysis of Experiments - Case Study 02*. Disponível em: http://github.com/fcampelo/Design-and-Analysis-of-Experiments
+
+[2] CAMPELO, F. *Design and Analysis of Experiments- Simple Comparisons*. Disponível em: http://github.com/fcampelo/Design-and-Analysis-of-Experiments
+
+[3] Hospital Sírio-Libanês. *Calcule o seu IMC*. Disponível em: https://www.hospitalsiriolibanes.org.br/hospital/especialidades/nucleo-obesidade-transtornos-alimentares/Paginas/calcule-seu-imc.aspx Último acesso:22/10/2018.
+
+[4]SNEDECOR, W.; COCHRAN, W. G. *Statistical Methods*, Eighth Edition, Iowa State University Press, 1989. 
