@@ -282,16 +282,3 @@ duntestCI <- confint(duntest)
 par(mar = c(5, 8, 4, 2), las = 1)
 plot(duntestCI, xlab = "Mean difference (log scale)")
 ```
-
-
-
-
-## Referências
-
-[1] CAMPELO, F. *Design and Analysis of Experiments - Case Study 02*. Disponível em: http://github.com/fcampelo/Design-and-Analysis-of-Experiments
-
-[2] CAMPELO, F. *Design and Analysis of Experiments- Simple Comparisons*. Disponível em: http://github.com/fcampelo/Design-and-Analysis-of-Experiments
-
-[3] Hospital Sírio-Libanês. *Calcule o seu IMC*. Disponível em: https://www.hospitalsiriolibanes.org.br/hospital/especialidades/nucleo-obesidade-transtornos-alimentares/Paginas/calcule-seu-imc.aspx Último acesso:22/10/2018.
-
-[4]SNEDECOR, W.; COCHRAN, W. G. *Statistical Methods*, Eighth Edition, Iowa State University Press, 1989. 
